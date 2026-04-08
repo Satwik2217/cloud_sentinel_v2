@@ -15,17 +15,13 @@ except ImportError:
 from client import CloudSentinelEnv
 from models import CloudSentinelAction
 
-# --- MANDATORY CONFIGURATION ---
-# 1. Use the standard OpenAI-compatible endpoint for Hugging Face
-# The Router URL is typically https://router.huggingface.co/v1
-API_BASE_URL = "https://router.huggingface.co/v1"
+# --- CONFIGURATION (Meta Judge Proxy & LLM) ---
+# Use judge-injected environment variables with local fallbacks for testing.
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/hf-inference/v1")
+API_KEY = os.getenv("API_KEY", os.getenv("HF_TOKEN", "your_hf_token_here"))
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 
-# 2. Use a supported model name. Qwen 2.5 is excellent for this task.
-MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
-
-HF_TOKEN = os.getenv("HF_TOKEN")
 ENV_URL = "https://satwik2217-cloud-sentinel.hf.space"
-
 MAX_STEPS = 10
 
 SYSTEM_PROMPT = textwrap.dedent("""
@@ -56,16 +52,17 @@ def log_end(task: str, success: bool, steps: int, score: float) -> None:
     print(f"[END] task={task} score={score:.3f} steps={steps}", flush=True)
 
 async def main():
-    if not HF_TOKEN or HF_TOKEN == "your_hf_token_here":
-        print("ERROR: HF_TOKEN not found or is still the placeholder. Please check your .env file.")
+    if not API_KEY or API_KEY == "your_hf_token_here":
+        print("ERROR: API_KEY (or HF_TOKEN fallback) not found. Please check your .env file or environment.")
         return
 
     # Print config for debugging (won't affect grader as long as logs are present)
     print(f"DEBUG: Using Base URL: {API_BASE_URL}", flush=True)
     print(f"DEBUG: Using Model: {MODEL_NAME}", flush=True)
 
-    # Initialize the OpenAI Client pointing to the Standard Router
-    openai_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+    # Initialize OpenAI Client using judge-injected environment variables.
+    # When the judge runs it, os.environ takes priority.
+    openai_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
     # Required tasks for Phase 2
     tasks_to_run = ["secure-one", "secure-three", "full-hardening"]
