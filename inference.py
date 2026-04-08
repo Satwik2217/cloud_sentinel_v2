@@ -43,14 +43,17 @@ SYSTEM_PROMPT = textwrap.dedent("""
 """).strip()
 
 def log_start(task: str, env: str, model: str) -> None:
-    print(f"STARTING TASK: {task} | ENV: {env} | MODEL: {model}", flush=True)
+    # URGENT: Must print exactly: [START] task=TASK_ID, env=ENV_NAME, model=MODEL_NAME
+    print(f"[START] task={task}, env={env}, model={model}", flush=True)
 
 def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
-    print(f"STEP: {step} | ACTION: {action} | REWARD: {reward:.2f} | DONE: {str(done).lower()}", flush=True)
+    # URGENT: Must print exactly: [STEP] step=NUM reward=VAL done=BOOL action=STRING
+    # No labels like "ACTION:" or extra braces.
+    print(f"[STEP] step={step} reward={reward:.2f} done={str(done).lower()} action={action}", flush=True)
 
-def log_end(success: bool, steps: int, score: float) -> None:
-    result_str = "SUCCESS" if success else "FAILED"
-    print(f"FINAL SCORE: {score:.3f} | STEPS: {steps} | RESULT: {result_str}", flush=True)
+def log_end(task: str, success: bool, steps: int, score: float) -> None:
+    # URGENT: Must print exactly: [END] task=TASK_ID score=VAL steps=NUM
+    print(f"[END] task={task} score={score:.3f} steps={steps}", flush=True)
 
 async def main():
     if not HF_TOKEN or HF_TOKEN == "your_hf_token_here":
@@ -58,8 +61,8 @@ async def main():
         return
 
     # Print config for debugging (won't affect grader as long as logs are present)
-    print(f"DEBUG: Using Base URL: {API_BASE_URL}")
-    print(f"DEBUG: Using Model: {MODEL_NAME}")
+    print(f"DEBUG: Using Base URL: {API_BASE_URL}", flush=True)
+    print(f"DEBUG: Using Model: {MODEL_NAME}", flush=True)
 
     # Initialize the OpenAI Client pointing to the Standard Router
     openai_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
@@ -93,12 +96,12 @@ async def main():
                             temperature=0.1
                         )
                         if not response or not response.choices:
-                            print(f"LLM Error: No choices in response: {response}")
+                            print(f"LLM Error: No choices in response: {response}", flush=True)
                             break
                         action_str = response.choices[0].message.content.strip()
                     except Exception as e:
                         # Improved error message for debugging
-                        print(f"LLM Error: {str(e)}")
+                        print(f"LLM Error: {str(e)}", flush=True)
                         break
 
                     try:
@@ -119,11 +122,11 @@ async def main():
 
                 # Logic to determine if task was passed (at least 0.05 baseline)
                 success = final_score >= 0.05 
-                log_end(success, steps_taken, final_score)
+                log_end(current_task, success, steps_taken, final_score)
 
             except Exception as e:
-                print(f"Task Failed: {e}")
-                log_end(False, steps_taken, 0.0)
+                print(f"Task Failed: {e}", flush=True)
+                log_end(current_task, False, steps_taken, 0.0)
 
 if __name__ == "__main__":
     asyncio.run(main())
