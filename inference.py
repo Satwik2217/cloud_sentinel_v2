@@ -15,8 +15,6 @@ except ImportError:
 from client import CloudSentinelEnv
 from models import CloudSentinelAction
 
-# --- CONFIGURATION (Meta Judge Proxy & LLM) ---
-# Use judge-injected environment variables with local fallbacks for testing.
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/hf-inference/v1")
 API_KEY = os.getenv("API_KEY", os.getenv("HF_TOKEN", "your_hf_token_here"))
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
@@ -39,16 +37,12 @@ SYSTEM_PROMPT = textwrap.dedent("""
 """).strip()
 
 def log_start(task: str, env: str, model: str) -> None:
-    # URGENT: Must print exactly: [START] task=TASK_ID, env=ENV_NAME, model=MODEL_NAME
     print(f"[START] task={task}, env={env}, model={model}", flush=True)
 
 def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
-    # URGENT: Must print exactly: [STEP] step=NUM reward=VAL done=BOOL action=STRING
-    # No labels like "ACTION:" or extra braces.
     print(f"[STEP] step={step} reward={reward:.2f} done={str(done).lower()} action={action}", flush=True)
 
 def log_end(task: str, success: bool, steps: int, score: float) -> None:
-    # URGENT: Must print exactly: [END] task=TASK_ID score=VAL steps=NUM
     print(f"[END] task={task} score={score:.3f} steps={steps}", flush=True)
 
 async def main():
@@ -56,19 +50,14 @@ async def main():
         print("ERROR: API_KEY (or HF_TOKEN fallback) not found. Please check your .env file or environment.")
         return
 
-    # Print config for debugging (won't affect grader as long as logs are present)
     print(f"DEBUG: Using Base URL: {API_BASE_URL}", flush=True)
     print(f"DEBUG: Using Model: {MODEL_NAME}", flush=True)
 
-    # Initialize OpenAI Client using judge-injected environment variables.
-    # When the judge runs it, os.environ takes priority.
     openai_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
-    # Required tasks for Phase 2
     tasks_to_run = ["secure-one", "secure-three", "full-hardening"]
 
     for current_task in tasks_to_run:
-        # Connect to your environment Space
         async with CloudSentinelEnv(base_url=ENV_URL) as env:    
             log_start(task=current_task, env="cloud_sentinel", model=MODEL_NAME)
             
@@ -76,14 +65,12 @@ async def main():
             final_score = 0.0
             
             try:
-                # Reset for the specific task
                 result = await env.reset(task_id=current_task)
                 
                 for step in range(1, MAX_STEPS + 1):
                     obs = result.observation
                     
                     try:
-                        # Request next action from LLM
                         response = openai_client.chat.completions.create(
                             model=MODEL_NAME,
                             messages=[
@@ -97,12 +84,10 @@ async def main():
                             break
                         action_str = response.choices[0].message.content.strip()
                     except Exception as e:
-                        # Improved error message for debugging
                         print(f"LLM Error: {str(e)}", flush=True)
                         break
 
                     try:
-                        # Parse and execute action
                         res_id, cmd = action_str.split(":")
                         action = CloudSentinelAction(resource_id=res_id, command=cmd)
                         result = await env.step(action)
@@ -117,7 +102,6 @@ async def main():
                     except Exception as e:
                         log_step(step, action_str, 0.0, False, str(e))
 
-                # Logic to determine if task was passed (at least 0.05 baseline)
                 success = final_score >= 0.05 
                 log_end(current_task, success, steps_taken, final_score)
 

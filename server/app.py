@@ -2,20 +2,17 @@ import os
 from typing import Dict, List, Optional
 from pydantic import BaseModel
 
-# --- STEP 1: DEFINE TASK MODEL ---
 class Task(BaseModel):
     id: str
     name: str
     description: str
     difficulty: str
 
-# --- STEP 2: CORE OPENENV IMPORTS ---
 try:
     from openenv.core.env_server.http_server import create_app
 except ImportError as e:
     raise ImportError("openenv-core is required. Run 'pip install openenv-core'") from e
 
-# --- STEP 3: PROJECT-SPECIFIC IMPORTS ---
 try:
     from ..models import CloudSentinelAction, CloudSentinelObservation
     from .cloud_sentinel_environment import CloudSentinelEnvironment
@@ -23,8 +20,6 @@ except (ImportError, ModuleNotFoundError):
     from models import CloudSentinelAction, CloudSentinelObservation
     from server.cloud_sentinel_environment import CloudSentinelEnvironment
 
-# --- STEP 4: CREATE THE APP ---
-# We REMOVE 'tasks=TASKS' to fix the TypeError
 app = create_app(
     CloudSentinelEnvironment,
     CloudSentinelAction,
@@ -33,8 +28,6 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-# --- STEP 5: MANUALLY INJECT THE TASKS ENDPOINT ---
-# This "forces" the API to show the 3 tasks Meta requires
 TASKS_DATA = [
     {
         "id": "secure-one", 
