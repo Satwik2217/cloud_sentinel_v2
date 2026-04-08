@@ -54,7 +54,7 @@ class CloudSentinelEnvironment(Environment):
 
 
     
-    def reset(self) -> CloudSentinelObservation:
+    def reset(self, task_id: Optional[str] = None) -> CloudSentinelObservation:
         """
         LAYMAN: This starts a new game. 
         It creates 5 'Red' (vulnerable) servers.
@@ -70,6 +70,9 @@ class CloudSentinelEnvironment(Environment):
                 is_encrypted=False
             ) for i in range(5)
         ]
+        
+        # Optionally, you could customize the environment based on task_id here
+        # But for now, we follow the requirement to just loop through tasks.
         
         return self._get_obs(reward=0.0)
 
@@ -107,8 +110,9 @@ class CloudSentinelEnvironment(Environment):
         LAYMAN: This takes a snapshot of the current world to show the AI.
         """
         score = self._calculate_score()
-        # The game is 'done' if the score is perfect (1.0) or out of time
-        done = score >= 1.0 or self._state.step_count >= self.max_steps
+        # The game is 'done' if the score is perfect (0.95) or out of time
+        # We use 0.95 because that's our maximum scaled score.
+        done = score >= 0.95 or self._state.step_count >= self.max_steps
         
         return CloudSentinelObservation(
             resources=[res.model_copy() for res in self.resources],
