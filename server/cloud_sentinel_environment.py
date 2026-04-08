@@ -26,24 +26,34 @@ class CloudSentinelEnvironment(Environment):
 
     def _calculate_score(self) -> float:
         """
-        LAYMAN: This checks every server. 
-        Each server has 2 security points (Public/Private and Encrypted/Not).
-        Total possible points = 10 (5 servers * 2 points each).
-        We return a score from 0.0 to 1.0.
+        STRICT COMPLIANCE VERSION:
+        Ensures the score is ALWAYS > 0.0 and < 1.0.
+        Range: 0.05 (starting) to 0.95 (perfect).
         """
         if not self.resources:
-            return 0.0
+            return 0.05  # Minimum baseline instead of 0.0
         
         points = 0
         for res in self.resources:
+            # Each server contributes points for being Private and Encrypted
             if not res.is_public:
                 points += 1
             if res.is_encrypted:
                 points += 1
         
-        # 10 total points possible, so divide by 10 to get 0.0 to 1.0
-        return points / 10.0
+        # 1. Get the raw ratio (0.0 to 1.0)
+        raw_ratio = points / 10.0
+        
+        # 2. Apply Linear Scaling: Score = 0.05 + (raw_ratio * 0.90)
+        # If points = 0  -> Score = 0.05
+        # If points = 5  -> Score = 0.50
+        # If points = 10 -> Score = 0.95
+        final_score = 0.05 + (raw_ratio * 0.90)
+        
+        return round(final_score, 2)
 
+
+    
     def reset(self) -> CloudSentinelObservation:
         """
         LAYMAN: This starts a new game. 

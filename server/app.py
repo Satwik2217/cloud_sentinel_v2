@@ -39,19 +39,19 @@ TASKS_DATA = [
     {
         "id": "secure-one", 
         "name": "Secure One Server", 
-        "description": "Harden at least one resource (0.2 score).", 
+        "description": "Harden at least one resource.", 
         "difficulty": "easy"
     },
     {
         "id": "secure-three", 
         "name": "Secure Three Servers", 
-        "description": "Harden three resources (0.6 score).", 
+        "description": "Harden three resources.", 
         "difficulty": "medium"
     },
     {
         "id": "full-hardening", 
         "name": "Full Network Hardening", 
-        "description": "Harden all five resources (1.0 score).", 
+        "description": "Harden all five resources.", 
         "difficulty": "hard"
     }
 ]
