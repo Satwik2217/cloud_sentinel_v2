@@ -17,14 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. Copy all the code files
 COPY . .
 
-# 7. Open the door for the Judge (Port 8000)
-EXPOSE 8000
+# 7. Use the port HF expects (Defaulting to 7860)
+EXPOSE 7860
 
-# 8. THE CRITICAL FIX: Match the Ping Address (Compliance Part 7)
-# We changed this from '/health' to '/' to match our app.py
+# 8. Updated Healthcheck to check the dynamic port
+# We use 7860 here because it's the standard HF port
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:7860/ || exit 1
 
-# 9. Start the 'Receptionist'
-# We use the module path so Python finds 'server.app' correctly
-CMD ["python", "-m", "server.app"]
+# 9. Start the 'Receptionist' with a dynamic port
+# We use the environment variable PORT if available, else 7860
+CMD uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860}

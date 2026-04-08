@@ -1,34 +1,33 @@
-# Compliance: Part 2 (Spec Version and Naming)
-spec_version: 1
-name: cloud_sentinel
-version: "0.1.0"
-type: space
-runtime: fastapi
-app: server.app:app
-port: 8000
+spec_version: "1"
+name: "cloud_sentinel"
+entrypoint: "server.app:app"
 
-# Compliance: Part 1, 3, & 5 (Task Enumeration)
-# This section tells the Meta Validator that you have a 3-task progression.
-tasks:
-  - id: secure-one
-    name: "Task 1: Initial Hardening"
-    description: "Secure at least one public/unencrypted resource. Target Score: 0.2"
-    difficulty: "easy"
-  
-  - id: secure-three
-    name: "Task 2: Advanced Protection"
-    description: "Secure at least three resources to reach 60% compliance. Target Score: 0.6"
-    difficulty: "medium"
-
-  - id: full-hardening
-    name: "Task 3: Full Cloud Compliance"
-    description: "Secure all five resources to reach 100% compliance. Target Score: 1.0"
-    difficulty: "hard"
-
-# Compliance: Part 3 (Documentation for 30% Utility Score)
 metadata:
   domain: "Cybersecurity"
   task_type: "Cloud Infrastructure Remediation"
-  observation_space: "List of CloudResource objects (id, type, is_public, is_encrypted)"
-  action_space: "Commands: 'revoke_access', 'encrypt', or 'terminate' targeting a resource_id"
-  reward_logic: "Deterministic scoring. Each fix adds 0.1 to the total security_score (0.0 to 1.0)."
+  description: "A simulation of hardening cloud resources against public exposure and lack of encryption."
+
+tasks:
+  - id: "secure-one"
+    name: "Secure One Server"
+    difficulty: "easy"
+    max_steps: 5
+    grader:
+      type: "deterministic"
+      description: "Grader checks if at least one resource has is_public=False and is_encrypted=True. Score is (secured_count / 1.0) capped at 1.0."
+
+  - id: "secure-three"
+    name: "Secure Three Servers"
+    difficulty: "medium"
+    max_steps: 10
+    grader:
+      type: "deterministic"
+      description: "Grader calculates the ratio of hardened servers. Success is reached when 3/5 servers are fully compliant. Score = (secured_count / 3.0)."
+
+  - id: "full-hardening"
+    name: "Full Network Hardening"
+    difficulty: "hard"
+    max_steps: 15
+    grader:
+      type: "deterministic"
+      description: "Grader evaluates 100% compliance. All 5 servers must be private and encrypted. Final score is (secured_count / 5.0)."
