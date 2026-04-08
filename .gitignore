@@ -1,0 +1,29 @@
+# --- SENSITIVE DATA (CRITICAL) ---
+# Never upload your private keys or tokens!
+.env
+login_hf.py
+
+# --- PYTHON ---
+# Keeps the virtual environment and compiled code out of the Space
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# --- TESTING & LOGS ---
+# Keeps your local test results private
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+test_step.py
+
+# --- OPERATING SYSTEM ---
+# Hidden system files
+.DS_Store
+Thumbs.db

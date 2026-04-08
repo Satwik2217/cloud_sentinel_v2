@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cloud_sentinel"
+version = "0.1.0"
+description = "Cybersecurity Cloud Hardening Environment for Meta OpenEnv"
+requires-python = ">=3.10"
+dependencies = [
+    "openenv-core[core]>=0.2.2",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.0.0",
+    "openai>=1.0.0",
+    "python-multipart"
+]
+
+[project.scripts]
+# This allows 'openenv' to start your server automatically
+server = "server.app:main"
+
+[tool.setuptools]
+include-package-data = true
+# IMPORTANT: This tells Python where your code lives
+packages = ["server"]
+package-dir = { "" = "." }
